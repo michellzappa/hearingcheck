@@ -107,7 +107,7 @@ struct DirectionDial: View {
                     .position(x: center.x, y: center.y - 42)
 
                 ForEach(LocalizationRunner.azimuths, id: \.self) { az in
-                    let rad = Double(az) * .pi / 180
+                    let rad = CGFloat(az) * .pi / 180
                     Button {
                         onSelect(az)
                     } label: {

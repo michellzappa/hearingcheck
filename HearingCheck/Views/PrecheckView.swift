@@ -83,9 +83,7 @@ struct PrecheckView: View {
 /// The system volume slider. Apps cannot set the output volume directly.
 struct SystemVolumeSlider: UIViewRepresentable {
     func makeUIView(context: Context) -> MPVolumeView {
-        let view = MPVolumeView(frame: .zero)
-        view.showsRouteButton = true
-        return view
+        MPVolumeView(frame: .zero)
     }
 
     func updateUIView(_ uiView: MPVolumeView, context: Context) {}
