@@ -71,6 +71,14 @@ struct LocalizationResult: Codable, Hashable {
     }
 }
 
+/// Interaural loudness balance at one frequency.
+/// `offsetDB` = right level minus left level when both sound equally loud.
+/// Positive = the right ear needs more level = the right ear is less sensitive.
+struct BalanceResult: Codable, Hashable {
+    var frequency: Double
+    var offsetDB: Double
+}
+
 struct TestSession: Codable, Identifiable, Hashable {
     var id = UUID()
     var date = Date()
@@ -78,8 +86,22 @@ struct TestSession: Codable, Identifiable, Hashable {
     var route: String
     var thresholds: [ThresholdResult] = []
     var localization: LocalizationResult?
+    var balance: [BalanceResult]?
 
     var isThresholdSession: Bool { !thresholds.isEmpty }
+    var isBalanceSession: Bool { !(balance ?? []).isEmpty }
+
+    var kindLabel: String {
+        if isThresholdSession { return "Threshold test" }
+        if isBalanceSession { return "Balance test" }
+        return "Spatial test"
+    }
+
+    var resultTitle: String {
+        if isThresholdSession { return "Audiogram" }
+        if isBalanceSession { return "Ear balance" }
+        return "Spatial result"
+    }
 
     func threshold(_ ear: Ear, _ frequency: Double) -> ThresholdResult? {
         thresholds.first { $0.ear == ear && $0.frequency == frequency }

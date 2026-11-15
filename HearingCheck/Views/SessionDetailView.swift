@@ -23,8 +23,9 @@ struct SessionDetailView: View {
 
             if session.isThresholdSession { thresholdSections }
             if let loc = session.localization { localizationSections(loc) }
+            if session.isBalanceSession { BalanceSections(session: session) }
         }
-        .navigationTitle(session.isThresholdSession ? "Audiogram" : "Spatial result")
+        .navigationTitle(session.resultTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
 

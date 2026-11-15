@@ -20,6 +20,13 @@ You get an audiogram for both ears, a table of thresholds and a warning when you
 by 15 dB or more at any frequency. Your first test is your baseline, and later tests show how
 far each frequency moved since then.
 
+**Balance test.** The same tone plays in your left ear, then your right, over and over. You
+move a slider until both sound equally loud, then go to the next frequency (500 Hz to 8 kHz).
+The result shows how many dB more one ear needed at each frequency, next to your previous run,
+and a chart over time. It is a quick way to follow a one-sided change from day to day, such as
+a dip in the high frequencies of one ear after a loud concert. The middle of the slider moves
+by a hidden random amount on each frequency, so you can't line it up by eye.
+
 **Spatial test.** A noise burst, a low tone or a high tone plays from one of 8 directions
 around your head, rendered with Apple's HRTF spatial audio. You tap where it came from. The
 low tone tests the timing difference between your ears and the high tone tests the level

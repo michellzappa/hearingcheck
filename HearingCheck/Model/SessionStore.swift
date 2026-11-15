@@ -19,6 +19,16 @@ final class SessionStore {
         sessions.filter(\.isThresholdSession).min { $0.date < $1.date }
     }
 
+    /// The newest balance session older than `session`, for day-to-day comparison.
+    func previousBalance(before session: TestSession) -> TestSession? {
+        sessions.filter { $0.isBalanceSession && $0.date < session.date }.max { $0.date < $1.date }
+    }
+
+    /// All balance sessions, oldest first.
+    var balanceHistory: [TestSession] {
+        sessions.filter(\.isBalanceSession).sorted { $0.date < $1.date }
+    }
+
     func add(_ session: TestSession) {
         sessions.insert(session, at: 0)
         save()

@@ -16,6 +16,7 @@ enum EarSelection: String, CaseIterable, Identifiable {
 enum TestKind: Hashable {
     case threshold(ears: [Ear], frequencies: [Double])
     case localization(Stimulus)
+    case balance
 }
 
 struct HomeView: View {
@@ -47,6 +48,14 @@ struct HomeView: View {
                     Text("Pure-tone threshold")
                 } footer: {
                     Text("Finds the quietest tone you hear at each frequency, one ear at a time. Each tone plays in one ear only.")
+                }
+
+                Section {
+                    NavigationLink("Start balance test", value: TestKind.balance)
+                } header: {
+                    Text("Ear balance")
+                } footer: {
+                    Text("Plays the same tone in your left ear, then your right, again and again. You move a slider until both sound equally loud. The result shows how much more level one ear needs at each frequency. Repeat it daily to follow a temporary change.")
                 }
 
                 Section {
@@ -108,7 +117,7 @@ struct SessionRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(session.isThresholdSession ? "Threshold test" : "Spatial test")
+            Text(session.kindLabel)
             Text("\(session.date.formatted(date: .abbreviated, time: .shortened)) · \(session.route) · vol \(Int((session.outputVolume * 100).rounded()))%")
                 .font(.caption)
                 .foregroundStyle(.secondary)

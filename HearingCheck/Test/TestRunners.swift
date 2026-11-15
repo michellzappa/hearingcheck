@@ -150,3 +150,83 @@ final class LocalizationRunner {
         trialIndex += 1
     }
 }
+
+/// Alternate binaural loudness balance: the same tone plays in the left ear, then the right,
+/// in a loop. The user moves a slider until both sound equally loud.
+/// The left ear stays at `referenceLevel`; the slider changes the right ear's level.
+/// The slider centre is shifted by a hidden random amount per frequency, so "centre" is not a cue.
+@MainActor
+@Observable
+final class BalanceRunner {
+    nonisolated static let frequencies: [Double] = [500, 1000, 2000, 3000, 4000, 6000, 8000]
+    static let referenceLevel = -35.0
+    static let sliderRange = -25.0...25.0
+    static let toneDuration = 0.45
+    static let maxLevel = -3.0
+
+    private(set) var index = 0
+    private(set) var sounding: Ear?
+    private(set) var results: [BalanceResult] = []
+    var slider = 0.0
+
+    let frequencies: [Double]
+    @ObservationIgnored private let audio: AudioController
+    @ObservationIgnored private var hiddenShift = 0.0
+    @ObservationIgnored private var task: Task<Void, Never>?
+
+    init(audio: AudioController, frequencies: [Double] = BalanceRunner.frequencies) {
+        self.audio = audio
+        self.frequencies = frequencies
+    }
+
+    var finished: Bool { index >= frequencies.count }
+    var currentFrequency: Double? { finished ? nil : frequencies[index] }
+    var running: Bool { task != nil }
+
+    /// Right level minus left level, in dB.
+    var offset: Double { slider + hiddenShift }
+
+    func start() {
+        guard task == nil, !finished else { return }
+        newTrial()
+        audio.start()
+        task = Task { await loop() }
+    }
+
+    func stop() {
+        task?.cancel()
+        task = nil
+        sounding = nil
+        audio.stopSound()
+    }
+
+    /// Records the current setting as "equally loud" and moves to the next frequency.
+    func confirm() {
+        guard let f = currentFrequency else { return }
+        results.append(BalanceResult(frequency: f, offsetDB: (offset * 2).rounded() / 2))
+        index += 1
+        if finished { stop() } else { newTrial() }
+    }
+
+    private func newTrial() {
+        hiddenShift = Double.random(in: -10...10)
+        slider = 0
+    }
+
+    private func loop() async {
+        while !Task.isCancelled, let f = currentFrequency {
+            sounding = .left
+            audio.playBurst(frequency: f, levelDBFS: Self.referenceLevel, channel: .left, duration: Self.toneDuration)
+            try? await Task.sleep(for: .seconds(Self.toneDuration + 0.15))
+            guard !Task.isCancelled, let f2 = currentFrequency, f2 == f else { continue }
+
+            sounding = .right
+            let right = min(Self.maxLevel, Self.referenceLevel + offset)
+            audio.playBurst(frequency: f, levelDBFS: right, channel: .right, duration: Self.toneDuration)
+            try? await Task.sleep(for: .seconds(Self.toneDuration + 0.15))
+
+            sounding = nil
+            try? await Task.sleep(for: .seconds(0.35))
+        }
+    }
+}

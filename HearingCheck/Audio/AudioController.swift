@@ -29,11 +29,11 @@ enum Stimulus: String, Codable, CaseIterable, Identifiable {
 @MainActor
 @Observable
 final class AudioController {
-    static let pulseOn = 0.22
-    static let pulseOff = 0.18
-    static let pulseCount = 3
-    static let ramp = 0.02
-    static var stimulusDuration: Double {
+    nonisolated static let pulseOn = 0.22
+    nonisolated static let pulseOff = 0.18
+    nonisolated static let pulseCount = 3
+    nonisolated static let ramp = 0.02
+    nonisolated static var stimulusDuration: Double {
         Double(pulseCount) * pulseOn + Double(pulseCount - 1) * pulseOff
     }
 
@@ -159,6 +159,17 @@ final class AudioController {
         stereoPlayer.scheduleBuffer(buffer, at: nil, options: .interrupts)
     }
 
+    /// Plays one steady tone of `duration` seconds with soft edges. Used by the balance test.
+    func playBurst(frequency: Double, levelDBFS: Double, channel: Channel, duration: Double) {
+        start()
+        let buffer = makeStereoBuffer(channel: channel, duration: duration, envelope: { t in
+            Self.singleToneEnvelope(t, length: duration)
+        }) { t in
+            sin(2 * .pi * frequency * t) * Self.amplitude(levelDBFS)
+        }
+        stereoPlayer.scheduleBuffer(buffer, at: nil, options: .interrupts)
+    }
+
     /// Plays a stimulus from `azimuth` degrees (0 = front, 90 = right, 180 = behind, 270 = left)
     /// through the HRTF renderer.
     func playSpatial(_ stimulus: Stimulus, azimuth: Double, levelDBFS: Double = -20) {
@@ -172,11 +183,11 @@ final class AudioController {
 
     // MARK: Synthesis
 
-    static func amplitude(_ dbfs: Double) -> Double { pow(10, dbfs / 20) }
+    nonisolated static func amplitude(_ dbfs: Double) -> Double { pow(10, dbfs / 20) }
 
     /// Envelope for the pulse train: cosine ramps on every pulse to avoid clicks
     /// (clicks are broadband and would let you "hear" a tone you cannot hear).
-    private static func envelope(_ t: Double) -> Double {
+    nonisolated private static func envelope(_ t: Double) -> Double {
         let period = pulseOn + pulseOff
         let index = Int(t / period)
         guard index < pulseCount else { return 0 }
@@ -187,16 +198,29 @@ final class AudioController {
         return 1
     }
 
-    private func makeStereoBuffer(channel: Channel, sample: (Double) -> Double) -> AVAudioPCMBuffer {
+    /// Cosine ramp in and out over `ramp` seconds for a single tone of `length` seconds.
+    nonisolated private static func singleToneEnvelope(_ t: Double, length: Double) -> Double {
+        guard t >= 0, t <= length else { return 0 }
+        if t < ramp { return 0.5 - 0.5 * cos(.pi * t / ramp) }
+        if t > length - ramp { return 0.5 - 0.5 * cos(.pi * (length - t) / ramp) }
+        return 1
+    }
+
+    private func makeStereoBuffer(
+        channel: Channel,
+        duration: Double = AudioController.stimulusDuration,
+        envelope: (Double) -> Double = AudioController.envelope,
+        sample: (Double) -> Double
+    ) -> AVAudioPCMBuffer {
         let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 2)!
-        let frames = AVAudioFrameCount(Self.stimulusDuration * sampleRate) + 1
+        let frames = AVAudioFrameCount(duration * sampleRate) + 1
         let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames)!
         buffer.frameLength = frames
         let left = buffer.floatChannelData![0]
         let right = buffer.floatChannelData![1]
         for i in 0..<Int(frames) {
             let t = Double(i) / sampleRate
-            let v = Float(sample(t) * Self.envelope(t))
+            let v = Float(sample(t) * envelope(t))
             left[i] = channel == .right ? 0 : v
             right[i] = channel == .left ? 0 : v
         }

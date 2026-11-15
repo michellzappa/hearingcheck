@@ -44,10 +44,13 @@ struct PrecheckView: View {
                 checklistItem("Control Center → hold volume → turn Spatialize Stereo / head tracking off.")
                 checklistItem("AirPods: use Noise Cancellation, not Transparency or Adaptive. Turn off Conversation Boost.")
                 checklistItem("Settings → Accessibility → Audio & Visual: turn off Mono Audio, Headphone Accommodations, Balance at centre.")
-                if case .threshold = kind {
+                switch kind {
+                case .threshold:
                     checklistItem("Tap the big button every time you hear a beep, even a faint one. Do not guess.")
-                } else {
+                case .localization:
                     checklistItem("Keep your head still. Tap the direction the sound came from.")
+                case .balance:
+                    checklistItem("Judge loudness only. A tone can sound duller or brighter in one ear; ignore that.")
                 }
             }
 
@@ -71,6 +74,8 @@ struct PrecheckView: View {
                 ThresholdTestView(ears: ears, frequencies: frequencies)
             case .localization(let stimulus):
                 LocalizationTestView(stimulus: stimulus)
+            case .balance:
+                BalanceTestView()
             }
         }
     }

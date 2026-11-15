@@ -1,9 +1,10 @@
 # HearingCheck: agent notes
 
 HearingCheck is an iPhone app (SwiftUI, iOS 18+) for a hearing self-check with headphones.
-It has two tests:
+It has three tests:
 
 - Threshold test: pure tones from 250 Hz to 8 kHz (optional 10 to 16 kHz), one ear at a time.
+- Balance test: the same tone alternates left and right; the user matches loudness with a slider.
 - Spatial test: a sound from one of 8 directions, rendered with HRTF. The user taps the direction.
 
 No dependencies. No server. Results are plain JSON in `Documents/sessions.json`.
@@ -40,6 +41,11 @@ No dependencies. No server. Results are plain JSON in `Documents/sessions.json`.
 - `Test/TestRunners.swift`: `ThresholdRunner` adds a random onset of 1.2 to 3.2 s and silent
   catch trials (12%). A tap outside the response window counts as a false alarm.
   `LocalizationRunner` plays each of 8 azimuths twice in random order with ±3 dB level jitter.
+- `BalanceRunner` (alternate binaural loudness balance): left stays at -35 dBFS, the slider sets
+  the right level. `offsetDB` = right minus left at equal loudness; positive = right ear less
+  sensitive. A hidden random shift of ±10 dB per frequency moves the slider centre. Results
+  compare with the previous balance session (`SessionStore.previousBalance`), not the baseline,
+  because this test tracks short-term change.
 - AVAudio3D axes: +x right, +y up, -z forward. Azimuth 0 = front, 90 = right.
 - The oldest threshold session is the baseline. `SessionDetailView` flags ear asymmetry of
   15 dB or more and a change of 10 dB or more worse than the baseline.
