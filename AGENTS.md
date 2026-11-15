@@ -46,6 +46,9 @@ No dependencies. No server. Results are plain JSON in `Documents/sessions.json`.
   sensitive. A hidden random shift of ±10 dB per frequency moves the slider centre. Results
   compare with the previous balance session (`SessionStore.previousBalance`), not the baseline,
   because this test tracks short-term change.
+- Every session has an optional `feeling` (`EarFeeling`: clear, right/left/both clogged). The
+  setup screen requires it; the result screen can change it. `CloggedComparison` averages
+  balance runs tagged clear vs clogged per frequency.
 - AVAudio3D axes: +x right, +y up, -z forward. Azimuth 0 = front, 90 = right.
 - The oldest threshold session is the baseline. `SessionDetailView` flags ear asymmetry of
   15 dB or more and a change of 10 dB or more worse than the baseline.

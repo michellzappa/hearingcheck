@@ -117,10 +117,26 @@ struct SessionRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(session.kindLabel)
+            HStack {
+                Text(session.kindLabel)
+                if let feeling = session.feeling { FeelingChip(feeling: feeling) }
+            }
             Text("\(session.date.formatted(date: .abbreviated, time: .shortened)) · \(session.route) · vol \(Int((session.outputVolume * 100).rounded()))%")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+}
+
+struct FeelingChip: View {
+    let feeling: EarFeeling
+
+    var body: some View {
+        Text(feeling.label)
+            .font(.caption2.bold())
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(feeling.isClogged ? Color.orange.opacity(0.2) : Color.green.opacity(0.2), in: Capsule())
+            .foregroundStyle(feeling.isClogged ? Color.orange : Color.green)
     }
 }

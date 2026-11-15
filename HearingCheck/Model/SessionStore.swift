@@ -34,6 +34,14 @@ final class SessionStore {
         save()
     }
 
+    func setFeeling(_ feeling: EarFeeling?, for id: UUID) {
+        guard let i = sessions.firstIndex(where: { $0.id == id }) else { return }
+        sessions[i].feeling = feeling
+        save()
+    }
+
+    func session(_ id: UUID) -> TestSession? { sessions.first { $0.id == id } }
+
     func delete(at offsets: IndexSet) {
         sessions.remove(atOffsets: offsets)
         save()

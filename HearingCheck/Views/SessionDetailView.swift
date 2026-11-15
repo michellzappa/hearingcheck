@@ -19,6 +19,13 @@ struct SessionDetailView: View {
                 LabeledContent("Date", value: session.date.formatted(date: .abbreviated, time: .shortened))
                 LabeledContent("Output", value: session.route)
                 LabeledContent("Volume", value: "\(Int((session.outputVolume * 100).rounded()))%")
+                Picker("Ears felt", selection: Binding(
+                    get: { store.session(session.id)?.feeling },
+                    set: { store.setFeeling($0, for: session.id) }
+                )) {
+                    Text("Not set").tag(EarFeeling?.none)
+                    ForEach(EarFeeling.allCases) { Text($0.label).tag(EarFeeling?.some($0)) }
+                }
             }
 
             if session.isThresholdSession { thresholdSections }

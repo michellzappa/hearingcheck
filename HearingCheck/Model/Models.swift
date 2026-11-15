@@ -71,6 +71,23 @@ struct LocalizationResult: Codable, Hashable {
     }
 }
 
+/// How the ears felt when the test ran. Lets results be compared clogged vs clear.
+enum EarFeeling: String, Codable, CaseIterable, Identifiable {
+    case clear, rightClogged, leftClogged, bothClogged
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .clear: "Clear"
+        case .rightClogged: "Right clogged"
+        case .leftClogged: "Left clogged"
+        case .bothClogged: "Both clogged"
+        }
+    }
+
+    var isClogged: Bool { self != .clear }
+}
+
 /// Interaural loudness balance at one frequency.
 /// `offsetDB` = right level minus left level when both sound equally loud.
 /// Positive = the right ear needs more level = the right ear is less sensitive.
@@ -87,6 +104,7 @@ struct TestSession: Codable, Identifiable, Hashable {
     var thresholds: [ThresholdResult] = []
     var localization: LocalizationResult?
     var balance: [BalanceResult]?
+    var feeling: EarFeeling?
 
     var isThresholdSession: Bool { !thresholds.isEmpty }
     var isBalanceSession: Bool { !(balance ?? []).isEmpty }

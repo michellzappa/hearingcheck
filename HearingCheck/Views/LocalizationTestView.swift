@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LocalizationTestView: View {
     let stimulus: Stimulus
+    let feeling: EarFeeling?
 
     @Environment(AudioController.self) private var audio
     @Environment(SessionStore.self) private var store
@@ -63,7 +64,7 @@ struct LocalizationTestView: View {
 
     private func save(_ runner: LocalizationRunner) {
         guard savedSession == nil else { return }
-        let session = TestSession(outputVolume: audio.outputVolume, route: audio.routeName, localization: runner.result)
+        let session = TestSession(outputVolume: audio.outputVolume, route: audio.routeName, localization: runner.result, feeling: feeling)
         store.add(session)
         savedSession = session
     }

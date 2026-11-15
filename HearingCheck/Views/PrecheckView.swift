@@ -7,6 +7,7 @@ struct PrecheckView: View {
     @Environment(AudioController.self) private var audio
     @Environment(SessionStore.self) private var store
     @State private var started = false
+    @State private var feeling: EarFeeling?
 
     private var baselineVolume: Float? { store.baseline?.outputVolume }
 
@@ -25,6 +26,17 @@ struct PrecheckView: View {
                 Text("Output")
             } footer: {
                 Text("Pick one volume (50% is a good start) and use it every time.")
+            }
+
+            Section {
+                Picker("Ears right now", selection: $feeling) {
+                    Text("Choose").tag(EarFeeling?.none)
+                    ForEach(EarFeeling.allCases) { Text($0.label).tag(EarFeeling?.some($0)) }
+                }
+            } header: {
+                Text("How do your ears feel?")
+            } footer: {
+                Text("The result is tagged with this, so you can compare clogged and clear runs later.")
             }
 
             Section("Channel check") {
@@ -62,7 +74,7 @@ struct PrecheckView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(!audio.headphonesConnected)
+                .disabled(!audio.headphonesConnected || feeling == nil)
                 .listRowBackground(Color.clear)
             }
         }
@@ -71,11 +83,11 @@ struct PrecheckView: View {
         .navigationDestination(isPresented: $started) {
             switch kind {
             case .threshold(let ears, let frequencies):
-                ThresholdTestView(ears: ears, frequencies: frequencies)
+                ThresholdTestView(ears: ears, frequencies: frequencies, feeling: feeling)
             case .localization(let stimulus):
-                LocalizationTestView(stimulus: stimulus)
+                LocalizationTestView(stimulus: stimulus, feeling: feeling)
             case .balance:
-                BalanceTestView()
+                BalanceTestView(feeling: feeling)
             }
         }
     }

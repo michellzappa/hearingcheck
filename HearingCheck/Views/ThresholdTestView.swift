@@ -3,6 +3,7 @@ import SwiftUI
 struct ThresholdTestView: View {
     let ears: [Ear]
     let frequencies: [Double]
+    let feeling: EarFeeling?
 
     @Environment(AudioController.self) private var audio
     @Environment(SessionStore.self) private var store
@@ -82,7 +83,7 @@ struct ThresholdTestView: View {
 
     private func save(_ runner: ThresholdRunner) {
         guard savedSession == nil else { return }
-        let session = TestSession(outputVolume: audio.outputVolume, route: audio.routeName, thresholds: runner.results)
+        let session = TestSession(outputVolume: audio.outputVolume, route: audio.routeName, thresholds: runner.results, feeling: feeling)
         store.add(session)
         savedSession = session
     }

@@ -2,6 +2,7 @@ import Charts
 import SwiftUI
 
 struct BalanceTestView: View {
+    let feeling: EarFeeling?
     @Environment(AudioController.self) private var audio
     @Environment(SessionStore.self) private var store
     @State private var runner: BalanceRunner?
@@ -95,7 +96,7 @@ struct BalanceTestView: View {
 
     private func save(_ runner: BalanceRunner) {
         guard savedSession == nil else { return }
-        let session = TestSession(outputVolume: audio.outputVolume, route: audio.routeName, balance: runner.results)
+        let session = TestSession(outputVolume: audio.outputVolume, route: audio.routeName, balance: runner.results, feeling: feeling)
         store.add(session)
         savedSession = session
     }
@@ -160,6 +161,8 @@ struct BalanceSections: View {
             }
         }
 
+        CloggedComparison(history: store.balanceHistory)
+
         if store.balanceHistory.count >= 2 {
             Section {
                 BalanceTrendChart(history: store.balanceHistory)
@@ -181,11 +184,15 @@ struct BalanceTrendChart: View {
         let date: Date
         let frequency: String
         let offset: Double
+        let ears: String
     }
 
     private var points: [Point] {
         history.flatMap { s in
-            (s.balance ?? []).map { Point(date: s.date, frequency: Frequencies.label($0.frequency), offset: $0.offsetDB) }
+            (s.balance ?? []).map {
+                Point(date: s.date, frequency: Frequencies.label($0.frequency), offset: $0.offsetDB,
+                      ears: s.feeling.map { $0.isClogged ? "Clogged" : "Clear" } ?? "Not set")
+            }
         }
     }
 
@@ -195,8 +202,57 @@ struct BalanceTrendChart: View {
                 .foregroundStyle(by: .value("Hz", p.frequency))
             PointMark(x: .value("Date", p.date), y: .value("dB", p.offset))
                 .foregroundStyle(by: .value("Hz", p.frequency))
+                .symbol(by: .value("Ears", p.ears))
         }
         .chartForegroundStyleScale(domain: BalanceRunner.frequencies.map(Frequencies.label))
         .chartYAxisLabel("dB more in right ear")
+    }
+}
+
+/// Mean balance per frequency for runs tagged clear vs runs tagged clogged.
+/// Shown once there is at least one run of each.
+struct CloggedComparison: View {
+    let history: [TestSession]
+
+    private var clear: [TestSession] { history.filter { $0.feeling == .clear } }
+    private var clogged: [TestSession] { history.filter { $0.feeling?.isClogged == true } }
+
+    private func mean(_ sessions: [TestSession], _ f: Double) -> Double? {
+        let values = sessions.compactMap { $0.balance?.first { $0.frequency == f }?.offsetDB }
+        return values.isEmpty ? nil : values.reduce(0, +) / Double(values.count)
+    }
+
+    var body: some View {
+        if !clear.isEmpty, !clogged.isEmpty {
+            Section {
+                Grid(alignment: .trailing, horizontalSpacing: 16, verticalSpacing: 6) {
+                    GridRow {
+                        Text("Hz").gridColumnAlignment(.leading)
+                        Text("Clear"); Text("Clogged"); Text("Diff")
+                    }
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                    ForEach(BalanceRunner.frequencies, id: \.self) { f in
+                        let a = mean(clear, f), b = mean(clogged, f)
+                        GridRow {
+                            Text(Frequencies.label(f)).gridColumnAlignment(.leading)
+                            Text(a.map { String(format: "%+.0f", $0) } ?? "-")
+                            Text(b.map { String(format: "%+.0f", $0) } ?? "-")
+                            if let a, let b {
+                                Text(String(format: "%+.0f", b - a))
+                                    .foregroundStyle(abs(b - a) >= BalanceSections.flag ? .orange : .primary)
+                            } else {
+                                Text("-")
+                            }
+                        }
+                        .monospacedDigit()
+                    }
+                }
+            } header: {
+                Text("Clogged vs clear")
+            } footer: {
+                Text("Average of \(clear.count) clear and \(clogged.count) clogged runs. Diff = how many dB more the right ear needs when clogged. Positive = the right ear is weaker when clogged.")
+            }
+        }
     }
 }

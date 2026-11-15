@@ -27,6 +27,10 @@ and a chart over time. It is a quick way to follow a one-sided change from day t
 a dip in the high frequencies of one ear after a loud concert. The middle of the slider moves
 by a hidden random amount on each frequency, so you can't line it up by eye.
 
+Before each test you say how your ears feel: clear, or clogged on one or both sides. You can
+change it later on the result screen. Once you have balance runs of both kinds, the result
+screen shows the average for clogged runs next to the average for clear runs.
+
 **Spatial test.** A noise burst, a low tone or a high tone plays from one of 8 directions
 around your head, rendered with Apple's HRTF spatial audio. You tap where it came from. The
 low tone tests the timing difference between your ears and the high tone tests the level
