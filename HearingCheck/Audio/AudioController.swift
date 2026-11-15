@@ -38,7 +38,7 @@ final class AudioController {
     }
 
     private(set) var headphonesConnected = false
-    private(set) var routeName = "—"
+    private(set) var routeName = "None"
     private(set) var outputVolume: Float = 0
     private(set) var lastError: String?
 
@@ -84,7 +84,7 @@ final class AudioController {
         ]
         headphonesConnected = outputs.contains { headphoneTypes.contains($0.portType) }
         routeName = outputs.map(\.portName).joined(separator: ", ")
-        if routeName.isEmpty { routeName = "—" }
+        if routeName.isEmpty { routeName = "None" }
     }
 
     // MARK: Engine

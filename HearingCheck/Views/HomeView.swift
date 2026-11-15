@@ -41,7 +41,7 @@ struct HomeView: View {
                     Picker("Ears", selection: $earSelection) {
                         ForEach(EarSelection.allCases) { Text($0.label).tag($0) }
                     }
-                    Toggle("Extended high (10–16 kHz)", isOn: $extendedHigh)
+                    Toggle("Extended high (10 to 16 kHz)", isOn: $extendedHigh)
                     NavigationLink("Start threshold test", value: TestKind.threshold(ears: earSelection.ears, frequencies: frequencies))
                 } header: {
                     Text("Pure-tone threshold")

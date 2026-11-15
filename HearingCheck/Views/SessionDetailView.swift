@@ -60,7 +60,7 @@ struct SessionDetailView: View {
                             Text(String(format: "%+.0f", diff))
                                 .foregroundStyle(abs(diff) >= Self.asymmetryFlag ? .orange : .primary)
                         } else {
-                            Text("—")
+                            Text("-")
                         }
                     }
                     .monospacedDigit()
@@ -129,12 +129,12 @@ struct SessionDetailView: View {
             Text(String(format: "%+.0f", change))
                 .foregroundStyle(change <= -Self.shiftFlag ? .orange : .primary)
         } else {
-            Text("—")
+            Text("-")
         }
     }
 
     static func format(_ dbfs: Double?, present: Bool) -> String {
-        guard present else { return "—" }
+        guard present else { return "-" }
         guard let dbfs else { return "NR" }
         return String(format: "%.0f", -dbfs)
     }
